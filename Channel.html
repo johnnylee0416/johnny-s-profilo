@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>個人頻道 / 其它</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
+
+#scroll-prog{position:fixed;top:0;left:0;z-index:200;height:2px;background:#ff3333;width:0%}
+
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 52px;background:rgba(10,10,10,.88);backdrop-filter:blur(12px)}
+#nav-logo{font:700 13px/1 sans-serif;letter-spacing:.24em;color:#fff;text-decoration:none;opacity:.75;text-transform:uppercase;transition:opacity .2s}
+#nav-logo:hover{opacity:1}
+#nav-back{display:flex;align-items:center;gap:8px;font:400 10px/1 sans-serif;letter-spacing:.18em;color:rgba(255,255,255,.38);text-decoration:none;text-transform:uppercase;transition:color .2s}
+#nav-back:hover{color:#ff3333}
+#nav-back svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
+
+/* ── HERO ── */
+#hero{
+  padding:140px 64px 80px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font:600 11px/1 sans-serif;letter-spacing:.12em;color:#ff3333;text-transform:uppercase;
+  background:rgba(255,51,51,.1);border:1px solid rgba(255,51,51,.25);
+  padding:7px 12px;border-radius:2px;margin-bottom:28px;
+}
+.hero-badge-dot{width:7px;height:7px;border-radius:50%;background:#ff3333;animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* 頻道 Logo */
+.channel-logo{
+  width:72px;height:72px;border-radius:50%;
+  overflow:hidden;margin-bottom:20px;
+  border:1px solid rgba(255,255,255,.12);
+  background:#141414;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.channel-logo img{
+  width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;
+}
+.channel-logo-ph{
+  font:600 9px/1 sans-serif;letter-spacing:.14em;color:rgba(255,255,255,.22);text-transform:uppercase;
+}
+
+.hero-title{font:700 72px/1.1 sans-serif;color:#fff;letter-spacing:-.03em;margin-bottom:12px}
+.hero-sub{font:400 14px/1 sans-serif;letter-spacing:.12em;color:rgba(255,255,255,.28);text-transform:uppercase}
+
+/* 頻道小簡介 */
+.channel-intro{
+  font:400 13px/1.7 sans-serif;color:rgba(255,255,255,.38);
+  margin-top:18px;max-width:420px;
+}
+
+.hero-desc{font:400 16px/1.75 sans-serif;color:rgba(255,255,255,.48);margin-bottom:36px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.h-stat{padding:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:4px}
+.h-stat-num{font:700 28px/1 sans-serif;color:#fff;margin-bottom:6px}
+.h-stat-label{font:400 9px/1 sans-serif;letter-spacing:.14em;color:rgba(255,255,255,.25);text-transform:uppercase}
+
+/* ── 影片縮圖牆 ── */
+#videos{padding:2px;background:#0a0a0a}
+.video-grid{display:grid;gap:2px}
+.video-row-top{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.video-row-rest{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.video-thumb{
+  position:relative;overflow:hidden;
+  aspect-ratio:16/9;background:#111;cursor:pointer;
+}
+/* ★ 填圖片 */
+.video-img{
+  width:100%;height:100%;
+  background:#141414;background-size:cover;background-position:center;
+  filter:brightness(.9) saturate(1);
+  transition:filter .5s,transform .6s;
+}
+.video-thumb:hover .video-img{filter:brightness(1) saturate(1.06);transform:scale(1.03)}
+/* 播放按鈕 */
+.play-btn{
+  position:absolute;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .35s;
+}
+.video-thumb:hover .play-btn{opacity:1}
+.play-circle{
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+}
+.play-circle svg{width:18px;height:18px;fill:#fff;margin-left:3px}
+/* 資訊 */
+.video-info{
+  position:absolute;bottom:0;left:0;right:0;z-index:2;
+  padding:16px 16px 14px;
+  background:linear-gradient(to top,rgba(0,0,0,.88),transparent);
+  transform:translateY(4px);opacity:.8;transition:transform .35s,opacity .35s;
+}
+.video-thumb:hover .video-info{transform:translateY(0);opacity:1}
+.video-cat{font:400 9px/1 sans-serif;letter-spacing:.14em;color:rgba(255,51,51,.8);text-transform:uppercase;margin-bottom:5px}
+.video-title{font:500 13px/1.3 sans-serif;color:#fff}
+.video-views{font:400 10px/1 sans-serif;color:rgba(255,255,255,.3);margin-top:4px;letter-spacing:.05em}
+.video-type-badge{
+  position:absolute;top:12px;right:12px;z-index:2;
+  font:600 9px/1 sans-serif;letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(255,51,51,.85);color:#fff;
+  padding:4px 9px;border-radius:2px;
+}
+
+/* ── 其它影片區 ── */
+#other-videos{padding:88px 64px;background:#0d0d0d;border-top:1px solid rgba(255,255,255,.05)}
+.other-label{font:400 9px/1 sans-serif;letter-spacing:.3em;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:36px;display:flex;align-items:center;gap:18px}
+.other-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.05)}
+.other-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;max-width:1080px;margin:0 auto}
+
+/* ── 影片詳細內容 Modal ── */
+.video-modal{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  opacity:0;visibility:hidden;
+  transition:opacity .25s;
+}
+.video-modal.open{opacity:1;visibility:visible}
+.video-modal-inner{
+  position:relative;
+  width:100%;max-width:520px;max-height:88vh;overflow-y:auto;
+  background:#111;border:1px solid rgba(255,255,255,.08);border-radius:8px;
+  padding:36px 32px;
+  transform:translateY(10px);transition:transform .25s;
+}
+.video-modal.open .video-modal-inner{transform:translateY(0)}
+.video-modal-close{
+  position:absolute;top:16px;right:16px;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.5);
+  font-size:14px;cursor:pointer;transition:background .2s,color .2s;
+}
+.video-modal-close:hover{background:rgba(255,255,255,.12);color:#fff}
+.video-modal-cat{font:400 9px/1 sans-serif;letter-spacing:.16em;color:rgba(255,51,51,.8);text-transform:uppercase;margin-bottom:12px}
+.video-modal-title{font:600 22px/1.35 sans-serif;color:#fff;margin-bottom:16px}
+.video-modal-desc{font:400 14px/1.75 sans-serif;color:rgba(255,255,255,.5);margin-bottom:28px;min-height:20px}
+.video-modal-link{
+  display:inline-flex;align-items:center;gap:8px;
+  font:500 11px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;
+  color:#fff;background:#ff3333;padding:12px 22px;border-radius:3px;
+  transition:background .2s;
+}
+.video-modal-link:hover{background:#ff5555}
+.video-modal-gallery{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  margin-bottom:24px;
+}
+.video-modal-gallery img{
+  width:100%;aspect-ratio:4/3;object-fit:cover;
+  border-radius:4px;background:#1a1a1a;
+  border:1px solid rgba(255,255,255,.06);
+  cursor:zoom-in;transition:opacity .2s;
+}
+.video-modal-gallery img:hover{opacity:.8}
+
+/* ── 圖片放大檢視 Lightbox ── */
+.img-lightbox{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,.92);
+  display:flex;align-items:center;justify-content:center;
+  padding:32px;
+  opacity:0;visibility:hidden;
+  transition:opacity .2s;
+  cursor:zoom-out;
+}
+.img-lightbox.open{opacity:1;visibility:visible}
+.img-lightbox img{
+  max-width:100%;max-height:100%;
+  border-radius:4px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.img-lightbox-close{
+  position:absolute;top:20px;right:24px;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:none;color:#fff;
+  font-size:16px;cursor:pointer;transition:background .2s;
+}
+.img-lightbox-close:hover{background:rgba(255,255,255,.18)}
+
+/* ── 頻道介紹 ── */
+#about-ch{
+  padding:88px 64px;
+  display:grid;grid-template-columns:2fr 1fr;gap:80px;align-items:start;
+  background:#0d0d0d;border-top:1px solid rgba(255,255,255,.05);
+}
+.ch-label{font:400 9px/1 sans-serif;letter-spacing:.3em;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:28px}
+.ch-heading{font:500 32px/1.3 sans-serif;color:#fff;margin-bottom:20px;max-width:520px}
+.ch-body{font:400 15px/1.75 sans-serif;color:rgba(255,255,255,.42);max-width:560px}
+.ch-links-label{font:400 9px/1 sans-serif;letter-spacing:.24em;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:20px}
+.ch-link{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);
+  text-decoration:none;transition:border-color .25s;
+}
+.ch-link:hover{border-color:rgba(255,255,255,.18)}
+.ch-link:first-of-type{border-top:1px solid rgba(255,255,255,.05)}
+.ch-link-icon{font:600 10px/1 sans-serif;letter-spacing:.1em;color:rgba(255,51,51,.7);width:36px;flex-shrink:0}
+.ch-link-name{font:400 13px/1 sans-serif;color:rgba(255,255,255,.6);transition:color .2s}
+.ch-link:hover .ch-link-name{color:#fff}
+.ch-link-arrow{margin-left:auto;font-size:14px;color:rgba(255,255,255,.2);transition:color .25s,transform .25s}
+.ch-link:hover .ch-link-arrow{color:#fff;transform:translateX(3px)}
+
+/* ── CTA ── */
+#cta{padding:100px 64px;text-align:center;background:#0a0a0a;border-top:1px solid rgba(255,255,255,.05)}
+.cta-l{font:400 9px/1 sans-serif;letter-spacing:.3em;color:rgba(255,51,51,.5);text-transform:uppercase;margin-bottom:20px}
+.cta-h{font:600 52px/1 sans-serif;color:#fff;letter-spacing:-.02em;margin-bottom:14px}
+.cta-p{font:400 15px/1.65 sans-serif;color:rgba(255,255,255,.3);max-width:400px;margin:0 auto 44px}
+.sub-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font:500 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;
+  color:#fff;background:#ff3333;padding:14px 28px;border-radius:3px;
+  transition:background .2s;
+}
+.sub-btn:hover{background:#ff5555}
+
+footer{padding:22px 52px;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;font:400 9px/1 sans-serif;letter-spacing:.16em;color:rgba(255,255,255,.15);text-transform:uppercase}
+
+@media(max-width:768px){
+  #hero{grid-template-columns:1fr;padding:120px 24px 56px}
+  .hero-title{font-size:48px}
+  .video-row-rest{grid-template-columns:repeat(2,1fr)}
+  #other-videos{padding:56px 24px}
+  .other-grid{grid-template-columns:1fr}
+  #about-ch{grid-template-columns:1fr;padding:64px 24px;gap:48px}
+  #cta{padding:72px 24px}
+  .cta-h{font-size:36px}
+  #nav{padding:16px 24px}
+  footer{padding:20px 24px}
+  .video-modal-inner{padding:28px 22px}
+}
+</style>
+</head>
+<body>
+<div id="scroll-prog"></div>
+
+<nav id="nav">
+  <a id="nav-logo" href="index.html">Portfolio</a>
+  <a id="nav-back" href="index.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div>
+    <div class="hero-badge"><span class="hero-badge-dot"></span>Channel</div>
+
+    <!-- ★ 頻道 Logo — 填入圖片網址 src="" -->
+    <div class="channel-logo">
+      <img src="channel logo.png" alt="Channel Logo" onerror="this.style.display='none'">
+      <div class="channel-logo-ph">Logo</div>
+    </div>
+
+    <!-- ★ 修改標題 -->
+    <div class="hero-title">個人頻道-見真彰<br>/ 其它影片製作</div>
+    <div class="hero-sub">YouTube · Social · Side Projects</div>
+
+    <!-- ★ 頻道小簡介 -->
+    <div class="channel-intro"> 這裡是見真彰 ，
+                                頻道創作的類型多元不設限，
+                                podcast、挑戰系列、趣事分享、生活vlog樣樣都來!!
+                                額反正就是讓你們認識一個平凡無奇的大學生蛻變的過程啦，
+                                大家敬請期待囉，
+                                記得訂閱按讚分享，小鈴鐺叮叮叮！！！
+                                </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-desc">此頻道的建立初衷：
+                            <br>1.顧名思義見真彰不斷突破看見更好的自己
+                            <br>2.將多元有趣的想法及企劃內容透過影片呈現
+                            <br>3.記錄生活、挑戰自我
+    </div>
+    <div class="hero-stats">
+      <!-- ★ 填入頻道數據 -->
+      <div class="h-stat"><div class="h-stat-num">5</div><div class="h-stat-label">Videos</div></div>
+      <div class="h-stat"><div class="h-stat-num">1000+</div><div class="h-stat-label">Views</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEOS -->
+<section id="videos">
+  <div class="video-grid">
+
+    <div class="video-row-top">
+    <!-- ★ 縮圖 01 -->
+    <div class="video-thumb"
+         data-cat="Featured · Tutorial"
+         data-title="【20歲以前有起有落，20歲大學生該怎麼過???】分享求學經驗、自媒體的創作動機、分享冠軍思維這本好書、時間規畫技巧、自己的目標跟想法、未來自媒體的發展及期盼"
+         data-desc="這是這個頻道的第一支影片，
+                    想在20歲以後過著不一樣的人生體驗不再後悔，
+                    挑戰自我、成就自我，
+                    在做出朝著自媒體發展的決定後，
+                    運用兩天K完了冠軍思維這本書，
+                    書中的很多想法跟調整心態方面的內容，
+                    相信對於我往後在面對挑戰跟遇到困境的時候，
+                    都不會在畏懼或是退縮，
+                    或許在20歲之前沒有展現完美的自己，
+                    遇到感情方面的難關，
+                    遇到目標選擇及未來走向的難題，
+                    遇到每天被負面情緒侵襲而來，
+                    但相信20歲以及永久的未來都是充滿色彩。"
+         data-link="https://youtu.be/-rYtUDCyPyo?si=LjfEEQ_kgoQ4b8Tn"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('YT1.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Featured · Tutorial</div>
+        <div class="video-title">【20歲以前有起有落，20歲大學生該怎麼過???】</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+    <!-- ★ 縮圖 02 -->
+    <div class="video-thumb"
+         data-cat="Tutorial"
+         data-title="我受夠爛手機了!!! 見真彰vlog - 星期日下午vlog、大學生的充實生活、決定換Sony ZV E10相機記錄生活"
+         data-desc="身為創作者需要有一台好的相機設備，
+                    以前的我運用OPPO A79外接mic效果有夠差，
+                    我下定決心購買SONY ZV-E10這台適合新手、拍攝vlog的設備
+                    今天就隨手拍拍，
+                    紀錄星期日下午的生活當作本頻道的第一支vlog，
+                    順便測試看看相機基礎的功能跟會遇到的狀況，
+                    相信能持續進步，
+                    創作出更多精彩的內容。"
+         data-link="https://youtu.be/XOEfgmCZ7GY?si=jGlmhbJ9kr0Zozdx"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('SS.jpg')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Tutorial</div>
+        <div class="video-title">我受夠爛手機了!!! 見真彰vlog</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+    </div>
+
+    <div class="video-row-rest">
+    <!-- ★ 縮圖 03 -->
+    <div class="video-thumb"
+         data-cat="Showcase"
+         data-title="【日本旅遊8天7夜自由行經驗分享(上集)】旅遊的事前準備、行程規劃、東京大阪名古屋景點及美食推薦"
+         data-desc="上個暑假是我第一次跟朋友自行安排出國的行程，
+                    對國外旅遊陌生的我們，
+                    在4.5.6月就陸續開始密集做一系列的規劃，
+                    想要有一趟充實的旅行，
+                    行前規劃非常重要，
+                    畢竟【不怕一萬、只怕萬一】，
+                    有了這一系列清楚的規劃，
+                    讓我們在旅遊的途中能更加享受當地的文化，
+                    對時間的把控也能更精準。"
+         data-link="https://youtu.be/Qrd_WQDSLZk?si=unxEbbM1CKZOdAtX"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('JP.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Showcase</div>
+        <div class="video-title">【日本旅遊8天7夜自由行經驗分享(上集)】</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+    <!-- ★ 縮圖 04 -->
+    <div class="video-thumb"
+         data-cat="Devlog"
+         data-title="【日本旅遊8天7夜自由行經驗分享(下集：大阪篇)】大阪究竟有什麼好吃好玩的??? 分享日本之旅遇到的突發狀況、介紹必嘗的美食跟買的紀念品"
+         data-desc="上個暑假是我第一次跟朋友自行安排出國的行程，
+                    對國外旅遊陌生的我們，
+                    在4.5.6月就陸續開始密集做一系列的規劃，
+                    想要有一趟充實的旅行，
+                    行前規劃非常重要，
+                    畢竟【不怕一萬、只怕萬一】，
+                    有了這一系列清楚的規劃，
+                    讓我們在旅遊的途中能更加享受當地的文化，
+                    對時間的把控也能更精準。
+                    。"
+         data-link="https://youtu.be/1ggg2NaSU5M?si=qJcFJRRJKiScclT_"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('JP1.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Devlog</div>
+        <div class="video-title">【日本旅遊8天7夜自由行經驗分享(下集：大阪篇)】</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+    <!-- ★ 縮圖 05 -->
+    <div class="video-thumb"
+         data-cat="Speed Art"
+         data-title="大學生一週五天怎麼搭才好 ?? 不同風格穿搭，哪個才適合我?? "
+         data-desc="穿搭可以提升自信、打造你的個人風格，穿搭是別人對你的第一印象，這次在一週的五天上課日嘗試了五種風格的穿搭方式，到底哪個才適合我呢??。"
+         data-link="https://youtube.com/shorts/I16sly6ZhTQ?si=tP2vHqIEehI46quO"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('YTS1.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Speed Art</div>
+        <div class="video-title">大學生一週五天怎麼搭才好 ?? 不同風格穿搭，哪個才適合我?? </div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+    <!-- ★ 縮圖 06 -->
+    <div class="video-thumb"
+         data-cat="Vlog"
+         data-title="我好怕貓啊!!!【克服怕貓挑戰】EP.1 "
+         data-desc="我從小到大其實沒甚麼怕的東西，
+                    去遊樂園坐雲霄飛車、大怒神或是G5，
+                    總是衝第一，
+                    去鬼屋更是滿滿的興奮感，
+                    什麼蟑螂阿更是不在話下，
+                    但是卻對貓咪產生懼怕，
+                    跟朋友去貓咖更是渾身不舒服甚至烙跑，
+                    這一系列的挑戰企劃影片，
+                    就是一場與心魔的直球對決，
+                    希望第七天的我能夠成功接觸小貓咪，
+                    或許吧...
+                    有怕的東西就去挑戰它，
+                    Nothing is impossible。"
+         data-link="https://youtu.be/1XO9mEVEhFU?si=CyYnyjf8VgP16nco"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('YTcat1.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Vlog</div>
+        <div class="video-title">我好怕貓啊!!!【克服怕貓挑戰】EP.1 --- 圖片挑戰，克服都是循序漸進，第一階段的挑戰從簡出發，希望七個階段跑完能順利克服怕貓這件事情</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+    </div>
+
+
+        
+  </div>
+</section>
+
+<!-- ★ 其它影片區 — 前 3 支影片、後 4 份簡報，填法跟上面縮圖一樣 -->
+<section id="other-videos">
+  <div class="other-label">其它影片 · More</div>
+  <div class="other-grid">
+
+    <!-- 其它影片 01 -->
+    <div class="video-thumb"
+         data-cat="Other"
+         data-title="反思浪費"
+         data-desc="針對求學時期的拖延症、上課分心打遊戲這些狀況做出反思。"
+         data-link="https://youtu.be/cKw3_r0xYxM?si=u9AMRYg-I63Pc_SF"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('other1.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Other</div>
+        <div class="video-title">反思浪費</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+    <!-- 其它影片 02 -->
+    <div class="video-thumb"
+         data-cat="Other"
+         data-title="情勒的誘惑"
+         data-desc="面對朋友的情勒，這兩人的回覆卻與眾不同，在日常生活面對各種的情勒該怎麼應對呢。"
+         data-link="https://youtu.be/a0gLeMPU30I?si=El7LHpknFc3-90p0"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('other2.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Other</div>
+        <div class="video-title">情勒的誘惑</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+    <!-- 其它影片 03 -->
+    <div class="video-thumb"
+         data-cat="Other"
+         data-title="113年櫃買中心大專生證卷菁英種子培育營簡報競賽"
+         data-desc="113年櫃買中心大專生證卷菁英種子培育營簡報競賽-我們allin隊統整出了最好的投資組合，並分析產業面的知識，結合所有展業未來性、資金風險等因素考量，打造最高利益最有效率的投資方式。"
+         data-link="allin.mp4"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('other3.png')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Other</div>
+        <div class="video-title">113年櫃買中心大專生證卷菁英種子培育營簡報競賽</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+    <!-- ★ 其它影片 04 -->
+    <div class="video-thumb"
+         data-cat="Other"
+         data-title="影片標題"
+         data-desc="★ 這裡填這支影片的內容介紹說明。"
+         data-link="#"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('')"></div>
+      <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="video-info">
+        <div class="video-cat">Other</div>
+        <div class="video-title">影片標題</div>
+        <div class="video-views">— views</div>
+      </div>
+    </div>
+
+
+    <!-- ★ 簡報 01 — data-link 可填 .pptx 檔案網址（或 Google Slides / Canva 分享連結）
+         data-slides 可填任意數量的簡報截圖網址，用逗號分隔，會在彈窗內顯示縮圖牆（超過的部分可在彈窗內下滑查看） -->
+    <div class="video-thumb"
+         data-type="slide"
+         data-cat="Slide"
+         data-title="丹丹漢堡品牌行銷企劃"
+         data-desc="針對丹丹漢堡品牌做金句設計，運用一句話能夠凸顯品牌特色、強調品牌風格元素，創造自有的品牌價值。"
+         data-link="2026僑光行流盃-國立台北科技大學互動設計系-李紹彰.pptx"
+         data-slides="DD1 (1).png,DD1 (2).png,DD1 (3).png,DD1 (4).png"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('DD.png')"></div>
+      <span class="video-type-badge">Slide</span>
+      <div class="video-info">
+        <div class="video-cat">Slide</div>
+        <div class="video-title">丹丹漢堡品牌行銷企劃</div>
+        <div class="video-views">簡報 · PPTX</div>
+      </div>
+    </div>
+
+    <!-- ★ 簡報 02 -->
+    <div class="video-thumb"
+         data-type="slide"
+         data-cat="Slide"
+         data-title="路易莎商業模式九宮格分析報告"
+         data-desc="分析路易莎咖啡在市場中的定位，對比同類型競品，分析商業模式中的優缺點並給出具體建議。"
+         data-link="創業概論.pptx"
+         data-slides="LO (2).png,LO (3).png,LO (4).png,LO (5).png,LO (6).png"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('LO (1).png')"></div>
+      <span class="video-type-badge">Slide</span>
+      <div class="video-info">
+        <div class="video-cat">Slide</div>
+        <div class="video-title">路易莎商業模式九宮格分析報告</div>
+        <div class="video-views">簡報 · PPTX</div>
+      </div>
+    </div>
+
+    <!-- ★ 簡報 03（新增） -->
+    <div class="video-thumb"
+         data-type="slide"
+         data-cat="Slide"
+         data-title="創業企劃-新形態品牌服飾Figure"
+         data-desc="這是自創的品牌企劃書，點出當今服飾產業所面臨的頻頸，運用科技技術、空間的設計、行銷活動將品牌特色足以表達。"
+         data-link="第五組_figure_不要當我.pptx"
+         data-slides="f1 (1).png,f1 (2).png,f1 (3).png,f1 (4).png,f1 (5).png,f1 (6).png,f1 (7).png,f1 (8).png,f1 (9).png"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('figure.png')"></div>
+      <span class="video-type-badge">Slide</span>
+      <div class="video-info">
+        <div class="video-cat">Slide</div>
+        <div class="video-title">創業企劃-新形態品牌服飾Figure</div>
+        <div class="video-views">簡報 · PPTX</div>
+      </div>
+    </div>
+
+        <div class="video-thumb"
+         data-type="slide"
+         data-cat="Slide"
+         data-title="Among Us手遊研究"
+         data-desc=""
+         data-link="Among us.pptx"
+         data-slides="am (1).png,am (2).png,am (3).png,am (4).png,am (5).png,am (6).png,am (7).png,am (8).png,am (9).png"
+         onclick="openVideoModal(this)">
+      <div class="video-img" style="background-image:url('Am.png')"></div>
+      <span class="video-type-badge">Slide</span>
+      <div class="video-info">
+        <div class="video-cat">Slide</div>
+        <div class="video-title">Among Us手遊研究</div>
+        <div class="video-views">簡報 · PPTX</div>
+      </div>
+    </div>
+
+    
+
+<!-- ABOUT CHANNEL -->
+<section id="about-ch">
+  <div class="ch-text">
+    <div class="ch-label">關於頻道 · About</div>
+    <!-- ★ 修改標題與內容 -->
+    <div class="ch-heading">每一支影片的產出，<br>都是創作者靈感的突破。</div>
+    <div class="ch-body">以上是見真彰頻道相關的簡介以及影片內容，從企劃到拍攝到最後發布都是由我一手包辦，如果對我的影片內容有興趣歡迎透過下面社群私訊給予回饋及建議。</div>
+  </div>
+  <div class="ch-links">
+    <div class="ch-links-label">社群連結 · Links</div>
+    <!-- ★ 填入各平台連結 href="" -->
+    <a class="ch-link" href="https://youtube.com/channel/UCQejTUg8i1ytlrlWLbOiYTg?si=L_0h_vAqmZkr32NU" target="_blank">
+      <span class="ch-link-icon">YT</span>
+      <span class="ch-link-name">YouTube 頻道</span>
+      <span class="ch-link-arrow">›</span>
+    </a>
+    <a class="ch-link" href="" target="_blank">
+      <span class="ch-link-icon">IG</span>
+      <span class="ch-link-name">Instagram</span>
+      <span class="ch-link-arrow">›</span>
+    </a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-l">訂閱支持 · Subscribe</div>
+  <div class="cta-h">喜歡我的內容？</div>
+  <div class="cta-p">訂閱頻道，不錯過任何新影片與創作更新。</div>
+  <!-- ★ 填入 YouTube 頻道連結 -->
+  <a class="sub-btn" href="https://youtube.com/channel/UCQejTUg8i1ytlrlWLbOiYTg?si=LoOAavqz_eHnvEHG" target="_blank">▶ 前往頻道</a>
+</section>
+
+<footer>
+  <span>© 2024 Your Name</span>
+  <span>Channel & Others</span>
+</footer>
+
+<!-- ★ 影片詳細內容 Modal -->
+<div id="video-modal" class="video-modal" onclick="if(event.target===this)closeVideoModal()">
+  <div class="video-modal-inner">
+    <button class="video-modal-close" onclick="closeVideoModal()">✕</button>
+    <div class="video-modal-cat" id="vm-cat"></div>
+    <div class="video-modal-title" id="vm-title"></div>
+    <div class="video-modal-gallery" id="vm-gallery"></div>
+    <div class="video-modal-desc" id="vm-desc"></div>
+    <a class="video-modal-link" id="vm-link" href="#" target="_blank">▶ 觀看影片</a>
+  </div>
+</div>
+
+<!-- ★ 圖片放大檢視 Lightbox -->
+<div id="img-lightbox" class="img-lightbox" onclick="closeLightbox()">
+  <button class="img-lightbox-close" onclick="event.stopPropagation();closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+const prog=document.getElementById('scroll-prog');
+window.addEventListener('scroll',()=>{prog.style.width=Math.min(100,window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%';},{passive:true});
+
+/* 影片詳細內容 Modal */
+function openVideoModal(el){
+  document.getElementById('vm-cat').textContent = el.dataset.cat || '';
+  document.getElementById('vm-title').textContent = el.dataset.title || '';
+  document.getElementById('vm-desc').textContent = el.dataset.desc || '';
+  const link = document.getElementById('vm-link');
+  link.href = el.dataset.link || '#';
+  link.textContent = el.dataset.type === 'slide' ? '📑 查看簡報' : '▶ 觀看影片';
+
+  /* 簡報截圖縮圖牆：用 data-slides 逗號分隔的網址填入，數量不限，彈窗可下滑查看全部 */
+  const gallery = document.getElementById('vm-gallery');
+  gallery.innerHTML = '';
+  const slidesRaw = el.dataset.slides || '';
+  const slideUrls = slidesRaw.split(',').map(s => s.trim()).filter(Boolean);
+  if(slideUrls.length){
+    slideUrls.forEach(url => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = el.dataset.title || '簡報截圖';
+      img.onclick = (e) => { e.stopPropagation(); openLightbox(url, img.alt); };
+      gallery.appendChild(img);
+    });
+    gallery.style.display = 'grid';
+  } else {
+    gallery.style.display = 'none';
+  }
+
+  document.getElementById('video-modal').classList.add('open');
+}
+function closeVideoModal(){
+  document.getElementById('video-modal').classList.remove('open');
+}
+
+/* 圖片放大檢視 */
+function openLightbox(url, alt){
+  const lightbox = document.getElementById('img-lightbox');
+  const img = document.getElementById('lightbox-img');
+  img.src = url;
+  img.alt = alt || '';
+  lightbox.classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('img-lightbox').classList.remove('open');
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    closeLightbox();
+    closeVideoModal();
+  }
+});
+</script>
+</body>
+</html>

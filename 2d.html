@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>2D / UI / UX / AI</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#f5f4f1;color:#111;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
+
+#scroll-prog{position:fixed;top:0;left:0;z-index:200;height:2px;background:#111;width:0%}
+
+/* NAV — 淺色版 */
+#nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 52px;background:rgba(245,244,241,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.06)}
+#nav-logo{font:700 13px/1 sans-serif;letter-spacing:.24em;color:#111;text-decoration:none;opacity:.7;text-transform:uppercase;transition:opacity .2s}
+#nav-logo:hover{opacity:1}
+#nav-back{display:flex;align-items:center;gap:8px;font:400 10px/1 sans-serif;letter-spacing:.18em;color:rgba(0,0,0,.35);text-decoration:none;text-transform:uppercase;transition:color .2s}
+#nav-back:hover{color:#111}
+#nav-back svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
+
+/* ── HERO — 設計感排版 ── */
+#hero{
+  padding:160px 64px 100px;
+  display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end;
+  border-bottom:1px solid rgba(0,0,0,.08);
+}
+.hero-no{font:400 11px/1 sans-serif;letter-spacing:.28em;color:rgba(0,0,0,.28);text-transform:uppercase;margin-bottom:28px}
+.hero-title{font:700 80px/.88 sans-serif;color:#111;letter-spacing:-.04em;margin-bottom:0}
+.hero-title em{font-style:italic;font-weight:300;color:rgba(0,0,0,.4)}
+.hero-right{padding-bottom:8px}
+.hero-desc{font:400 17px/1.7 sans-serif;color:rgba(0,0,0,.5);max-width:380px;margin-bottom:36px}
+.hero-cats{display:flex;gap:8px;flex-wrap:wrap}
+.hero-cat{
+  font:400 9px/1 sans-serif;letter-spacing:.16em;color:rgba(0,0,0,.45);text-transform:uppercase;
+  border:1px solid rgba(0,0,0,.15);padding:7px 13px;border-radius:2px;
+  transition:background .2s,color .2s;
+}
+.hero-cat:hover{background:#111;color:#fff}
+
+/* ── 設計作品 Grid（縮圖牆，每格各佔一半，點擊開啟詳細內容） ── */
+#works{padding:2px 0;background:#f5f4f1}
+.bento{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:2px;
+}
+.bento-item{
+  position:relative;overflow:hidden;background:#e8e7e4;cursor:pointer;
+  aspect-ratio:4/3;
+}
+.bento-item.bento-wide{
+  grid-column:span 2;
+  aspect-ratio:21/9;
+}
+/* ★ 每格填圖片 */
+.bento-img{
+  width:100%;height:100%;
+  background-size:cover;background-repeat:no-repeat;background-position:center;
+  filter:brightness(1) saturate(1);
+  transition:filter .55s,transform .65s;
+}
+/* 網頁設計的寬版 banner 維持壓縮填滿（不裁切） */
+.bento-item.bento-wide .bento-img{
+  background-size:100% 100%;
+}
+.bento-item:hover .bento-img{filter:brightness(.94) saturate(1.06);transform:scale(1.02)}
+
+.bento-tag{
+  position:absolute;top:16px;left:16px;z-index:2;
+  font:400 9px/1 sans-serif;letter-spacing:.14em;color:rgba(0,0,0,.5);text-transform:uppercase;
+  background:rgba(245,244,241,.85);backdrop-filter:blur(4px);
+  padding:5px 10px;border-radius:2px;
+}
+.bento-type{
+  position:absolute;top:16px;right:16px;z-index:2;
+  font:600 9px/1 sans-serif;letter-spacing:.12em;text-transform:uppercase;
+  background:rgba(17,17,17,.78);color:#fff;
+  padding:5px 10px;border-radius:2px;
+}
+.bento-title{
+  position:absolute;bottom:16px;left:16px;right:16px;z-index:2;
+  font:500 15px/1.2 sans-serif;color:#111;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .35s,transform .35s;
+}
+.bento-item:hover .bento-title{opacity:1;transform:translateY(0)}
+
+/* 播放按鈕（只有 video 型顯示，暗示點擊可播放） */
+.bento-play{
+  position:absolute;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .35s;
+}
+.bento-item:hover .bento-play{opacity:1}
+.bento-play-circle{
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(245,244,241,.9);backdrop-filter:blur(6px);border:1px solid rgba(0,0,0,.12);
+  display:flex;align-items:center;justify-content:center;
+}
+.bento-play-circle svg{width:16px;height:16px;fill:#111;margin-left:2px}
+.bento-item[data-type="slide"] .bento-play,
+.bento-item[data-type="link"] .bento-play,
+.bento-item[data-type="gallery"] .bento-play,
+.bento-item[data-type="audio"] .bento-play{display:none}
+
+/* ── 作品詳細內容 Modal（含可播放影片 / 圖片縮圖牆 / 連結按鈕） ── */
+.work-modal{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(17,17,17,.72);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  opacity:0;visibility:hidden;
+  transition:opacity .25s;
+}
+.work-modal.open{opacity:1;visibility:visible}
+.work-modal-inner{
+  position:relative;
+  width:100%;max-width:680px;max-height:90vh;overflow-y:auto;
+  background:#fff;border-radius:8px;
+  padding:32px;
+  transform:translateY(10px);transition:transform .25s;
+}
+.work-modal.open .work-modal-inner{transform:translateY(0)}
+.work-modal-close{
+  position:absolute;top:16px;right:16px;z-index:2;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,.06);border:none;color:rgba(0,0,0,.5);
+  font-size:14px;cursor:pointer;transition:background .2s,color .2s;
+}
+.work-modal-close:hover{background:rgba(0,0,0,.12);color:#111}
+.work-modal-video{
+  width:100%;aspect-ratio:16/9;background:#111;
+  border-radius:4px;overflow:hidden;margin-bottom:24px;
+}
+.work-modal-video video,.work-modal-video iframe{
+  width:100%;height:100%;display:block;border:0;
+}
+.work-modal-gallery{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+  margin-bottom:24px;
+}
+.work-modal-gallery img{
+  width:100%;aspect-ratio:4/3;object-fit:fill;
+  border-radius:4px;background:#eee;
+  border:1px solid rgba(0,0,0,.06);
+  cursor:zoom-in;transition:opacity .2s;
+}
+.work-modal-gallery img:hover{opacity:.8}
+.work-modal-slide-link{
+  display:inline-flex;align-items:center;gap:8px;
+  font:500 12px/1 sans-serif;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+  color:#fff;background:#111;padding:13px 24px;border-radius:3px;
+  margin-bottom:24px;transition:opacity .2s;
+}
+.work-modal-slide-link:hover{opacity:.75}
+.work-modal-audio-list{margin-bottom:24px;display:flex;flex-direction:column;gap:14px}
+.work-modal-audio-item{
+  background:#f5f4f1;border:1px solid rgba(0,0,0,.06);border-radius:6px;
+  padding:14px 16px;
+}
+.work-modal-audio-label{
+  font:500 12px/1 sans-serif;letter-spacing:.06em;color:rgba(0,0,0,.55);margin-bottom:10px;
+}
+.work-modal-audio-item audio{width:100%;display:block}
+.work-modal-audio-item a{
+  display:inline-flex;align-items:center;gap:6px;
+  font:500 12px/1 sans-serif;letter-spacing:.05em;color:#111;text-decoration:underline;
+}
+.work-modal-cat{font:400 9px/1 sans-serif;letter-spacing:.16em;color:rgba(0,0,0,.4);text-transform:uppercase;margin-bottom:12px}
+.work-modal-title{font:600 22px/1.35 sans-serif;color:#111;margin-bottom:14px}
+.work-modal-desc{font:400 14px/1.75 sans-serif;color:rgba(0,0,0,.55);white-space:pre-line}
+
+/* ── 圖片放大檢視 Lightbox ── */
+.img-lightbox{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,.92);
+  display:flex;align-items:center;justify-content:center;
+  padding:32px;
+  opacity:0;visibility:hidden;
+  transition:opacity .2s;
+  cursor:zoom-out;
+}
+.img-lightbox.open{opacity:1;visibility:visible}
+.img-lightbox img{
+  max-width:100%;max-height:100%;
+  border-radius:4px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.img-lightbox-close{
+  position:absolute;top:20px;right:24px;
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.12);border:none;color:#fff;
+  font-size:16px;cursor:pointer;transition:background .2s;
+}
+.img-lightbox-close:hover{background:rgba(255,255,255,.22)}
+
+/* ── 類別介紹橫條 ── */
+#categories{padding:80px 64px;background:#fff;border-top:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06)}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:40px}
+.cat-icon{font:700 32px/1 sans-serif;color:rgba(0,0,0,.12);margin-bottom:16px}
+.cat-name{font:600 14px/1 sans-serif;color:#111;margin-bottom:8px}
+.cat-desc{font:400 13px/1.65 sans-serif;color:rgba(0,0,0,.42)}
+
+/* ── 工具 ── */
+#tools{padding:80px 64px;background:#f5f4f1}
+.tools-label{font:400 9px/1 sans-serif;letter-spacing:.3em;color:rgba(0,0,0,.25);text-transform:uppercase;margin-bottom:36px}
+.tools-flow{display:flex;flex-wrap:wrap;gap:10px}
+.tool-chip{
+  font:400 12px/1 sans-serif;letter-spacing:.06em;color:rgba(0,0,0,.6);
+  background:#fff;border:1px solid rgba(0,0,0,.1);
+  padding:9px 16px;border-radius:100px;
+  transition:background .2s,border-color .2s;
+}
+.tool-chip:hover{background:#111;color:#fff;border-color:#111}
+
+/* ── CTA ── */
+#cta{padding:100px 64px;text-align:center;background:#111;color:#fff}
+.cta-l{font:400 9px/1 sans-serif;letter-spacing:.3em;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:20px}
+.cta-h{font:600 52px/1 sans-serif;color:#fff;letter-spacing:-.02em;margin-bottom:14px}
+.cta-p{font:400 15px/1.65 sans-serif;color:rgba(255,255,255,.35);max-width:400px;margin:0 auto 44px}
+.cta-email{display:inline-block;font:400 16px/1 sans-serif;letter-spacing:.08em;color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:5px;transition:border-color .2s,opacity .2s}
+.cta-email:hover{border-color:#fff;opacity:.72}
+
+footer{padding:22px 52px;border-top:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;font:400 9px/1 sans-serif;letter-spacing:.16em;color:rgba(0,0,0,.2);text-transform:uppercase;background:#f5f4f1}
+
+@media(max-width:768px){
+  .bento-item.bento-wide{aspect-ratio:16/9}
+  #hero{grid-template-columns:1fr;padding:120px 24px 56px;gap:32px}
+  .hero-title{font-size:48px}
+  #categories{padding:56px 24px}
+  .cat-grid{grid-template-columns:repeat(2,1fr);gap:28px}
+  #tools{padding:56px 24px}
+  #cta{padding:72px 24px}
+  .cta-h{font-size:36px}
+  #nav{padding:16px 24px}
+  footer{padding:20px 24px}
+  .work-modal-inner{padding:22px}
+  .work-modal-gallery{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div id="scroll-prog"></div>
+
+<nav id="nav">
+  <a id="nav-logo" href="index.html">Portfolio</a>
+  <a id="nav-back" href="index.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-left">
+    <div class="hero-no">04 / 2D · UI · UX · AI</div>
+    <!-- ★ 修改標題 -->
+    <div class="hero-title">Visual<br><em>Design</em></div>
+  </div>
+  <div class="hero-right">
+    <!-- ★ 修改介紹 -->
+    <div class="hero-desc">網頁設計、2D平面設計(逐格動畫)、AI動畫、AI音樂、AI圖片生成、UX使用者經驗</div>
+    <div class="hero-cats">
+      <span class="hero-cat">2D Illustration</span>
+      <span class="hero-cat">UI Design</span>
+      <span class="hero-cat">UX Research</span>
+      <span class="hero-cat">AI Art</span>
+      <span class="hero-cat">Brand Identity</span>
+    </div>
+  </div>
+</section>
+
+<!-- WORKS -->
+<section id="works">
+  <div class="bento">
+
+    <!-- ★ 每格說明：
+         data-type="video"   → data-video 填影片網址（.mp4 或嵌入用網址），彈窗會播放影片
+         data-type="link"    → data-link 填網頁網址，彈窗顯示「🌐 前往網站」按鈕，另開新分頁
+         data-type="gallery" → data-images 填圖片網址（逗號分隔），彈窗顯示縮圖牆，點圖可放大；
+                                若同時填 data-link，還會多顯示「📑 查看簡報」按鈕
+         data-type="slide"   → 用 data-link 填簡報網址，彈窗顯示「查看簡報」按鈕 -->
+
+    <!-- 01 · 網頁設計作品（改為可前往網站，已填入實際內容，加寬） -->
+    <div class="bento-item bento-wide"
+         data-type="link"
+         data-cat="Web Design"
+         data-title="海陸紅豆餅"
+         data-desc="★ 這裡填這件網頁作品的介紹說明。"
+         data-link="https://johnnylee0416.github.io/wheelcake/%E6%9C%9F%E6%9C%AB%E5%B0%88%E6%A1%88(%E8%BB%8A%E8%BC%AA%E9%A4%85)/"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('web1.png')"></div>
+      <span class="bento-tag">Web Design</span>
+      <span class="bento-type">Link</span>
+      <div class="bento-title">海陸紅豆餅</div>
+    </div>
+
+    <!-- 02 · 網頁設計作品（改為可前往網站，加寬，已填入實際內容） -->
+    <div class="bento-item bento-wide"
+         data-type="link"
+         data-cat="Web Design"
+         data-title="個人作品集網頁"
+         data-desc="★ 這裡填這件網頁作品的介紹說明。"
+         data-link=""
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('web2.png')"></div>
+      <span class="bento-tag">Web Design</span>
+      <span class="bento-type">Link</span>
+      <div class="bento-title">個人作品集網頁</div>
+    </div>
+
+    <!-- 03 · 2D 手繪影片（已填入實際內容） -->
+    <div class="bento-item"
+         data-type="video"
+         data-cat="Brand Identity"
+         data-title="ZE"
+         data-desc="這是一個ARG網頁遊戲的前導劇情影片，呈現出LGBT及跨性別者在職場、同儕等各種環境中會經歷的歧視或被以異樣眼光看待的情況，以2D逐格動畫為媒材，搭配後至音效及畫風凸顯手繪的質感"
+         data-video="ze.mp4"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('ze (2).png')"></div>
+      <span class="bento-tag">Brand Identity</span>
+      <span class="bento-type">Video</span>
+      <div class="bento-play"><div class="bento-play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="bento-title">ZE</div>
+    </div>
+
+    <!-- 04 · AI 相關影音（已填入實際內容） -->
+    <div class="bento-item"
+         data-type="video"
+         data-cat="Illustration"
+         data-title="shine on you"
+         data-desc="shine on you"
+         data-video="shine on you(stable diffusion web ui making).mp4"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('shine.png')"></div>
+      <span class="bento-tag">Illustration</span>
+      <span class="bento-type">Video</span>
+      <div class="bento-play"><div class="bento-play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="bento-title">shine on you</div>
+    </div>
+
+
+
+    <!-- 06 · UX 案例（已填入實際內容，保留） -->
+    <div class="bento-item"
+         data-type="video"
+         data-cat="UX"
+         data-title="校史館-使用者旅程地圖/實際UX影片Demo"
+         data-desc="此影片針對北科大校史館做UX使用者經驗的研究，並依據{校友阿公帶孫子來參觀}這主題模擬實際情況，依照參展遇到的問題點，思考如何解決。"
+         data-video="UX.mp4"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('UX.png')"></div>
+      <span class="bento-tag">UI · App Design</span>
+      <span class="bento-type">Video</span>
+      <div class="bento-play"><div class="bento-play-circle"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21"/></svg></div></div>
+      <div class="bento-title">校史館-使用者旅程地圖/實際UX影片Demo</div>
+    </div>
+
+    <!-- 簡報 03 -->
+    <div class="bento-item"
+         data-type="slide"
+         data-cat="UX · Prototype"
+         data-title=""
+         data-desc=""
+         data-link="多感官簡報.pdf"
+         data-video="BBQ_720p.mp4"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('UX22.png')"></div>
+      <span class="bento-tag">UX · Prototype</span>
+      <span class="bento-type">Slide</span>
+      <div class="bento-title">容貌焦慮</div>
+    </div>
+
+
+
+    <!-- 簡報 03 -->
+    <div class="bento-item"
+         data-type="slide"
+         data-cat="UX · Prototype"
+         data-title="容貌焦慮"
+         data-desc="容貌焦慮成了現代許多人的問題，它是一種心理狀態，是對自己沒自信的表現方式。此次創作的主要核心聚焦在容貌焦慮所產生的問題，以及用比較幽默詼諧的方式，告訴讀者要對自己保持信心。"
+         data-link="設計實作期末作業-容貌焦慮.pptx"
+         data-images="face (3).png,face (4).png,face (5).png,face (6).png,face (7).png"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('face (1).png')"></div>
+      <span class="bento-tag">UX · Prototype</span>
+      <span class="bento-type">Slide</span>
+      <div class="bento-title">容貌焦慮</div>
+    </div>
+
+    <!-- 08 · AI 生成圖片作品（改為 4 格縮圖，可放大） -->
+    <div class="bento-item"
+         data-type="gallery"
+         data-cat="Poster Design"
+         data-title="AI圖文故事書【想念微笑】"
+         data-desc="
+         在一片遼闊的草地上，小蒲公英和它的家人一起快樂地生活著，日復一
+          日，小蒲公英從一顆嫩芽逐漸蛻變成一朵金色的小花，它的花瓣像陽光般耀
+          眼，周圍的朋友們都喜歡跟它一起玩耍。它最好的朋友是一隻經常圍著它轉圈
+          的蝴蝶小姐和一隻老是在花間嘻嘻哈哈的小瓢蟲。
+          「今天我們來玩捉迷藏吧！」小蒲公英興奮地提議。
+          
+          蝴蝶小姐輕輕拍著翅膀，「好啊！但你要數到一百才來找我們哦！」，小瓢
+          蟲轉動著它那圓滾滾的身體，一邊笑著，一邊開始尋找藏身之處。小蒲公英開
+          始數數，它的葉片在陽光下輕輕搖曳著，數到「一百」的時候，它睜開了眼
+          睛，開始四處尋找。可是，正當它準備繼續尋找時，一陣清風拂過它的臉龐，
+          小蒲公英的身軀隨風晃動，它越晃越高，竟然在草地上跳起了芭蕾舞。「「呀，，
+          這風太有趣了，我們要不要一起飛上天？」小蒲公英開心地叫道，雖然知道自
+          己還不具備飛行的能力，但它內心渴望著某一天能隨風飄向遠方，展開屬於自己的冒險。
+          時光在快樂的遊戲和陽光下悄然流逝，小蒲公英不再是曾經的那朵金黃色
+          的小花，它的花瓣變成了柔軟的綿毛球，每當風兒輕輕吹過，它都能感覺到自
+          己隨風飄動的輕盈感。這時，它想起了蒲公英媽媽曾說過的話：「當你準備好
+          時，風兒會帶你飛向未知的世界。」，這讓小蒲公英既期待又有些不安，它知道
+          那一天很快就會到來，但它捨不得離開這片充滿回憶的草地和它的朋友們。
+          
+          某天，天空突然變得陰沉起來，烏雲迅速聚集，一股異樣的氣氛彌漫在空
+          氣中。小蒲公英感覺到一種前所未有的緊張，它的葉片微微顫抖，似乎預感到
+          了什麼。「要下大雨了嗎？」它低聲問道，心裡有些害怕。
+          「這可不只是大雨，這是一場颶風！」蝴蝶小姐急忙飛來，告訴它們大家
+          要趕快躲起來。小瓢蟲和其他朋友們都躲進了厚厚的草叢中，只有小蒲公英無
+          法動彈，它只能緊緊抓住地面，祈禱風暴能夠快點過去。但颶風很快就襲來
+          了，狂風捲起塵土和落葉，把整個草地變得一片混亂。
+          
+          小蒲公英感覺到自己的
+          根在風中掙扎，它用盡全力想要抓住地面，但最終，它還是被風暴拋向了空
+          中。「媽媽，爸爸！」小蒲公英驚慌地呼喊著，它飛得越來越高，遠離了它熟
+          悉的一切。風聲在耳邊呼嘯，它被旋轉的風柱卷得天旋地轉，完全失去了方向
+          感。這一刻，小蒲公英知道它的冒險已經開始了。雖然它心裡充滿了對未知的
+          恐懼，但它同時也感受到了一種前所未有的自由。它不再是那顆扎根在草地上
+          的小花朵，而是一顆隨風飛翔的蒲公英種子，等待著落地生根。「我會找到我的
+          新家，然後在那裡紮根，展開全新的生活！」小蒲公英在心裡默默地對自己
+          說，儘管四周都是狂風暴雨，但它仍然對未來充滿了希望。
+          
+          經過了漫長的飛行，風暴終於漸漸平息下來。小蒲公英在空中漂浮了一
+          陣，然後輕輕降落在一片陌生的土地上。這裡與它的家鄉完全不同，土地乾
+          燥，周圍是高聳的山脈和零星的綠色植物。但小蒲公英知道，它終於找到了屬
+          於自己的新天地。
+          網址：https://chatgpt.com/share/cee94a2d-3823-477a-90c7-626ae571884d
+
+          "
+         data-images="【圖文】李紹彰｜圖1」 .png,【圖文】李紹彰｜圖2」.png,【圖文】李紹彰｜圖3」.png"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('【圖文】李紹彰｜圖1」 .png')"></div>
+      <span class="bento-tag">Poster Design</span>
+      <span class="bento-type">Gallery</span>
+      <div class="bento-title">AI圖文故事書【想念微笑】</div>
+    </div>
+
+            <!-- 05 · AI Music（3 段音訊連結；data-tracks 逗號分隔，每段預設用檔名當歌曲名稱顯示，
+         也可以用「歌名::網址」自訂顯示名稱（例如 data-tracks="真正的歌名::track1.mp3"）；
+         填 .mp3/.wav 等音檔網址會內嵌播放器，填一般網址（如 Suno 分享連結）則顯示為連結）
+         ★ 已加上 bento-wide 讓此區塊滿版顯示 -->
+    <div class="bento-item bento-wide"
+         data-type="audio"
+         data-cat="AI Music"
+         data-title="AI音樂"
+         data-desc="★ 這裡填這組 AI 音樂作品的介紹說明。"
+         data-tracks="When I was 20 years old.mp3,slow.mp3,受夠了.mp3"
+         onclick="openWorkModal(this)">
+      <div class="bento-img" style="background-image:url('mmusic.png')"></div>
+      <span class="bento-tag">AI Music</span>
+      <span class="bento-type">Audio</span>
+      <div class="bento-title">作品名稱</div>
+    </div>
+
+
+
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section id="categories">
+  <div style="max-width:1080px;margin:0 auto">
+    <div class="cat-grid">
+      <div class="cat-item">
+        <div class="cat-icon">2D</div>
+        <div class="cat-name">平面插畫</div>
+        <div class="cat-desc">角色設計、場景插畫、概念藝術，以個人風格詮釋各類視覺主題。</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">UI</div>
+        <div class="cat-name">介面設計</div>
+        <div class="cat-desc">App 與 Web 的視覺設計，兼顧美感與易用性的使用者介面。</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">UX</div>
+        <div class="cat-name">體驗設計</div>
+        <div class="cat-desc">使用者研究、資訊架構、原型設計，以人為本的設計思維。</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">AI</div>
+        <div class="cat-name">AI 創作</div>
+        <div class="cat-desc">結合 Midjourney、Stable Diffusion 等工具的 AI 輔助視覺創作。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section id="tools">
+  <div style="max-width:1080px;margin:0 auto">
+    <div class="tools-label">設計工具 · Tools</div>
+    <div class="tools-flow">
+      <!-- ★ 可增減 -->
+      <span class="tool-chip">Figma</span>
+      <span class="tool-chip">Photoshop</span>
+      <span class="tool-chip">Illustrator</span>
+      <span class="tool-chip">After Effects</span>
+      <span class="tool-chip">Midjourney</span>
+      <span class="tool-chip">Stable Diffusion</span>
+      <span class="tool-chip">Procreate</span>
+      <span class="tool-chip">Framer</span>
+      <span class="tool-chip">Canva</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="cta-l">委託設計 · Hire me</div>
+  <div class="cta-h">需要設計協助？</div>
+  <div class="cta-p">接受各類設計委託，包括品牌設計、UI/UX 規劃、插畫創作等。</div>
+  <!-- ★ 填入 Email -->
+  <a class="cta-email" href="mailto:your@email.com">your@email.com</a>
+</section>
+
+<footer>
+  <span>© 2024 Your Name</span>
+  <span>2D / UI / UX / AI</span>
+</footer>
+
+<!-- ★ 作品詳細內容 Modal（含可播放影片 / 圖片縮圖牆 / 連結按鈕） -->
+<div id="work-modal" class="work-modal" onclick="if(event.target===this)closeWorkModal()">
+  <div class="work-modal-inner">
+    <button class="work-modal-close" onclick="closeWorkModal()">✕</button>
+    <div class="work-modal-video" id="wm-video-wrap"></div>
+    <div class="work-modal-gallery" id="wm-gallery"></div>
+    <div class="work-modal-audio-list" id="wm-audio-list"></div>
+    <a class="work-modal-slide-link" id="wm-slide-link" href="#" target="_blank">📑 查看簡報</a>
+    <div class="work-modal-cat" id="wm-cat"></div>
+    <div class="work-modal-title" id="wm-title"></div>
+    <div class="work-modal-desc" id="wm-desc"></div>
+  </div>
+</div>
+
+<!-- ★ 圖片放大檢視 Lightbox -->
+<div id="img-lightbox" class="img-lightbox" onclick="closeLightbox()">
+  <button class="img-lightbox-close" onclick="event.stopPropagation();closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+const prog=document.getElementById('scroll-prog');
+window.addEventListener('scroll',()=>{prog.style.width=Math.min(100,window.scrollY/(document.body.scrollHeight-window.innerHeight)*100)+'%';},{passive:true});
+
+/* 作品詳細內容 Modal：video 型播放影片，gallery 型顯示可放大的縮圖牆，link/slide 型顯示連結按鈕 */
+function openWorkModal(el){
+  document.getElementById('wm-cat').textContent = el.dataset.cat || '';
+  document.getElementById('wm-title').textContent = el.dataset.title || '';
+  document.getElementById('wm-desc').textContent = el.dataset.desc || '';
+
+  const videoWrap = document.getElementById('wm-video-wrap');
+  const gallery = document.getElementById('wm-gallery');
+  const audioList = document.getElementById('wm-audio-list');
+  const link = document.getElementById('wm-slide-link');
+  videoWrap.innerHTML = '';
+  videoWrap.style.display = 'none';
+  gallery.innerHTML = '';
+  gallery.style.display = 'none';
+  audioList.innerHTML = '';
+  audioList.style.display = 'none';
+  link.style.display = 'none';
+
+  /* 影片播放（video 型，或任何有填 data-video 的項目） */
+  const videoSrc = el.dataset.video || '';
+  if(videoSrc){
+    if(/\.(mp4|webm|ogg)(\?.*)?$/i.test(videoSrc)){
+      const video = document.createElement('video');
+      video.src = videoSrc;
+      video.controls = true;
+      video.playsInline = true;
+      videoWrap.appendChild(video);
+    } else {
+      const iframe = document.createElement('iframe');
+      iframe.src = videoSrc;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      videoWrap.appendChild(iframe);
+    }
+    videoWrap.style.display = 'block';
+  }
+
+  /* 圖片縮圖牆（gallery 型，data-images 逗號分隔，點圖可放大） */
+  const imagesRaw = el.dataset.images || '';
+  const imageUrls = imagesRaw.split(',').map(s => s.trim()).filter(Boolean);
+  if(imageUrls.length){
+    imageUrls.forEach(url => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = el.dataset.title || '作品圖片';
+      img.onclick = (e) => { e.stopPropagation(); openLightbox(url, img.alt); };
+      gallery.appendChild(img);
+    });
+    gallery.style.display = 'grid';
+  }
+
+  /* 音訊清單（audio 型，data-tracks 逗號分隔；每段可用「歌名::網址」指定歌曲名稱，
+     沒指定歌名時會自動用檔名當標籤；
+     填 .mp3/.wav/.ogg/.m4a 這類音檔會內嵌播放器，否則顯示為連結（例如 Suno 等平台的分享網址） */
+  const tracksRaw = el.dataset.tracks || '';
+  const trackEntries = tracksRaw.split(',').map(s => s.trim()).filter(Boolean);
+  if(trackEntries.length){
+    trackEntries.forEach((entry) => {
+      let name, url;
+      if(entry.includes('::')){
+        [name, url] = entry.split('::').map(s => s.trim());
+      } else {
+        url = entry;
+        const fileName = url.split('/').pop();
+        name = fileName.replace(/\.[^/.]+$/, '');
+      }
+      const item = document.createElement('div');
+      item.className = 'work-modal-audio-item';
+      const label = document.createElement('div');
+      label.className = 'work-modal-audio-label';
+      label.textContent = `🎵 ${name}`;
+      item.appendChild(label);
+      if(/\.(mp3|wav|ogg|m4a)(\?.*)?$/i.test(url)){
+        const audio = document.createElement('audio');
+        audio.src = url;
+        audio.controls = true;
+        item.appendChild(audio);
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.textContent = '🔗 前往收聽';
+        item.appendChild(a);
+      }
+      audioList.appendChild(item);
+    });
+    audioList.style.display = 'flex';
+  }
+
+  /* 連結按鈕：link 型是「前往網站」，slide 型或額外附連結是「查看簡報」 */
+  const linkHref = el.dataset.link || '';
+  if(linkHref){
+    link.href = linkHref;
+    link.textContent = el.dataset.type === 'link' ? '🌐 前往網站' : '📑 查看簡報';
+    link.style.display = 'inline-flex';
+  }
+
+  document.getElementById('work-modal').classList.add('open');
+}
+function closeWorkModal(){
+  document.getElementById('work-modal').classList.remove('open');
+  document.getElementById('wm-video-wrap').innerHTML = '';
+}
+
+/* 圖片放大檢視 */
+function openLightbox(url, alt){
+  const lightbox = document.getElementById('img-lightbox');
+  const img = document.getElementById('lightbox-img');
+  img.src = url;
+  img.alt = alt || '';
+  lightbox.classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('img-lightbox').classList.remove('open');
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    closeLightbox();
+    closeWorkModal();
+  }
+});
+</script>
+</body>
+</html>

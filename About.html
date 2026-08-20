@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>個人簡介 · Profile</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
+
+/* ═══ NAV ═══ */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 52px;
+  background:linear-gradient(to bottom,rgba(10,10,10,.95),rgba(10,10,10,0));
+  pointer-events:auto;
+}
+#nav-logo{
+  font:700 13px/1 sans-serif;letter-spacing:.26em;color:#fff;
+  text-transform:uppercase;text-decoration:none;opacity:.85;
+  transition:opacity .2s;
+}
+#nav-logo:hover{opacity:1}
+#nav-back{
+  display:flex;align-items:center;gap:8px;
+  font:400 10px/1 sans-serif;letter-spacing:.18em;
+  color:rgba(255,255,255,.4);text-transform:uppercase;text-decoration:none;
+  transition:color .2s;
+  cursor:pointer;border:none;background:none;
+}
+#nav-back:hover{color:#fff}
+#nav-back svg{width:14px;height:14px;stroke:currentColor;stroke-width:1.5;fill:none}
+
+/* ═══ HERO ═══ */
+#hero{
+  min-height:100vh;
+  display:grid;
+  /* ★ 版面優化：文字欄位稍微多分一點空間（原本 1fr 1fr 對半分），
+     因為自介文字量大，讓右側文字欄有更寬裕的排版空間 */
+  grid-template-columns:0.9fr 1.1fr;
+  padding-top:80px;
+}
+.hero-photo-wrap{
+  /* 純粹的容器，不參與 grid 的 sticky 定位計算 */
+  min-height:100vh;
+}
+.hero-photo{
+  position:sticky;top:0;height:100vh;
+  overflow:hidden;
+  background:#111;
+}
+.hero-photo img{
+  width:100%;height:100%;
+  object-fit:cover;object-position:top center;
+  display:block;
+  filter:brightness(.85);
+}
+.hero-photo-ph{
+  width:100%;height:100%;
+  background:linear-gradient(160deg,#111,#1c1c1c);
+  display:flex;align-items:center;justify-content:center;
+}
+.hero-photo-ph span{
+  font:400 10px/1 sans-serif;letter-spacing:.2em;
+  color:rgba(255,255,255,.15);text-transform:uppercase;
+}
+
+.hero-text{
+  padding:100px 56px 80px 64px;
+  display:flex;flex-direction:column;
+  justify-content:flex-start;
+}
+
+/* 頂部標籤 */
+.hero-eyebrow{
+  font:400 9px/1 sans-serif;letter-spacing:.36em;
+  color:rgba(255,255,255,.22);text-transform:uppercase;
+  margin-bottom:24px;
+  display:flex;align-items:center;gap:14px;
+}
+.hero-eyebrow::before{
+  content:'';display:block;width:24px;height:1px;
+  background:rgba(255,255,255,.2);
+}
+
+/* 姓名 */
+.hero-name{
+  font:700 64px/1 sans-serif;color:#fff;
+  letter-spacing:-.025em;
+  margin-bottom:6px;
+  line-height:.95;
+}
+.hero-name em{
+  font-style:normal;
+  -webkit-text-stroke:1px rgba(255,255,255,.3);
+  color:transparent;
+}
+
+/* 職稱 */
+.hero-role{
+  font:400 14px/1 sans-serif;letter-spacing:.14em;
+  color:rgba(255,255,255,.32);text-transform:uppercase;
+  margin-bottom:40px;
+}
+
+/* 分隔線 */
+.divider{width:36px;height:1px;background:rgba(255,255,255,.18);margin-bottom:36px}
+
+/* 自我介紹 ★ 版面優化：加寬到 640px（原本 440px 太窄，長文字讀起來斷行過於頻繁）；
+   加上 white-space:pre-line，讓原始文字裡的空行正確渲染成段落間距，
+   而不是被瀏覽器預設塌陷成一整團擠在一起的文字 */
+.hero-bio{
+  font:400 16px/1.85 sans-serif;
+  color:rgba(255,255,255,.55);
+  max-width:640px;
+  margin-bottom:48px;
+  white-space:pre-line;
+}
+
+/* 理想工作 */
+.stats{display:flex;flex-wrap:wrap;gap:28px 36px;margin-bottom:48px}
+.stats>div{max-width:180px}
+.stat-num{
+  font:600 clamp(15px,1.5vw,17px)/1.4 sans-serif;color:#fff;
+  letter-spacing:-.01em;word-break:break-word;
+}
+.stat-label{
+  font:400 9px/1 sans-serif;letter-spacing:.18em;
+  color:rgba(255,255,255,.25);text-transform:uppercase;margin-top:10px;
+}
+
+/* 技能 */
+.skills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:52px;max-width:640px}
+.skill{
+  font:400 9px/1 sans-serif;letter-spacing:.14em;
+  color:rgba(255,255,255,.42);text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.1);
+  padding:7px 13px;border-radius:3px;
+  transition:border-color .2s,color .2s;
+}
+.skill:hover{border-color:rgba(255,255,255,.3);color:rgba(255,255,255,.75)}
+
+/* 社群連結 */
+.hero-links{display:flex;gap:24px;flex-wrap:wrap}
+.hero-link{
+  font:400 10px/1 sans-serif;letter-spacing:.2em;
+  color:rgba(255,255,255,.3);text-transform:uppercase;text-decoration:none;
+  border-bottom:1px solid transparent;padding-bottom:3px;
+  transition:color .2s,border-color .2s;
+}
+.hero-link:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+
+/* ═══ SECTION 通用 ═══ */
+.section{padding:88px 52px}
+.section-inner{max-width:1080px;margin:0 auto}
+.section-label{
+  font:400 9px/1 sans-serif;letter-spacing:.32em;
+  color:rgba(255,255,255,.2);text-transform:uppercase;
+  margin-bottom:48px;
+  display:flex;align-items:center;gap:18px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.05)}
+
+/* ═══ 工作經歷 ═══ */
+#experience{background:#0c0c0c}
+.timeline{display:flex;flex-direction:column}
+.tl-item{
+  display:grid;
+  grid-template-columns:160px 40px 1fr;
+  gap:0 24px;
+  padding:32px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.tl-item:first-child{border-top:1px solid rgba(255,255,255,.05)}
+.tl-period{
+  font:400 11px/1.5 sans-serif;
+  color:rgba(255,255,255,.22);letter-spacing:.06em;
+  padding-top:4px;
+  text-align:right;
+}
+.tl-dot{
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:6px;gap:6px;
+}
+.tl-dot-circle{
+  width:8px;height:8px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.25);
+  background:transparent;flex-shrink:0;
+}
+.tl-dot-line{flex:1;width:1px;background:rgba(255,255,255,.06);min-height:20px}
+.tl-title{font:500 17px/1.2 sans-serif;color:#fff;margin-bottom:5px}
+.tl-company{font:400 12px/1 sans-serif;color:rgba(255,255,255,.32);letter-spacing:.08em;margin-bottom:12px}
+.tl-desc{font:400 14px/1.7 sans-serif;color:rgba(255,255,255,.38);max-width:580px}
+.tl-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.tl-tag{
+  font:400 9px/1 sans-serif;letter-spacing:.1em;
+  color:rgba(255,255,255,.28);text-transform:uppercase;
+  background:rgba(255,255,255,.05);
+  padding:4px 9px;border-radius:2px;
+}
+
+/* ═══ 教育背景 ═══ */
+#education{background:#0a0a0a}
+.edu-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:16px;
+}
+.edu-card{
+  padding:28px 28px 26px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:4px;
+  transition:border-color .25s,background .25s;
+}
+.edu-card:hover{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.02)}
+.edu-degree{font:500 15px/1.3 sans-serif;color:#fff;margin-bottom:8px}
+.edu-school{font:400 12px/1 sans-serif;color:rgba(255,255,255,.32);letter-spacing:.06em;margin-bottom:6px}
+.edu-year{font:400 10px/1 sans-serif;color:rgba(255,255,255,.18);letter-spacing:.1em}
+.edu-desc{font:400 13px/1.65 sans-serif;color:rgba(255,255,255,.32);margin-top:12px}
+
+/* ═══ 軟體 / 工具 ═══ */
+#tools{background:#0c0c0c}
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:2px;
+}
+.tool-card{
+  background:rgba(255,255,255,.03);
+  padding:22px 18px;
+  display:flex;flex-direction:column;align-items:center;
+  gap:10px;
+  transition:background .25s;
+}
+.tool-card:hover{background:rgba(255,255,255,.06)}
+.tool-icon{
+  width:36px;height:36px;
+  border-radius:8px;
+  background:rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  font:600 14px/1 sans-serif;color:rgba(255,255,255,.5);
+  letter-spacing:.04em;
+}
+.tool-name{font:400 10px/1 sans-serif;letter-spacing:.12em;color:rgba(255,255,255,.35);text-transform:uppercase;text-align:center}
+.tool-level{
+  width:100%;height:2px;background:rgba(255,255,255,.06);border-radius:1px;overflow:hidden;
+}
+.tool-level-bar{height:100%;background:rgba(255,255,255,.2);border-radius:1px}
+
+/* ═══ CONTACT CTA ═══ */
+#contact-cta{
+  background:#080808;
+  padding:120px 52px;
+  text-align:center;
+}
+.cta-label{font:400 9px/1 sans-serif;letter-spacing:.32em;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:24px}
+.cta-heading{font:600 56px/1 sans-serif;color:#fff;letter-spacing:-.02em;margin-bottom:16px}
+.cta-sub{font:400 15px/1.65 sans-serif;color:rgba(255,255,255,.3);max-width:440px;margin:0 auto 48px}
+.cta-email{
+  display:inline-block;font:500 18px/1 sans-serif;letter-spacing:.08em;
+  color:#fff;text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,.22);padding-bottom:6px;
+  transition:border-color .2s,opacity .2s;margin-bottom:52px;
+}
+.cta-email:hover{border-color:#fff;opacity:.72}
+.cta-socials{display:flex;gap:28px;justify-content:center;flex-wrap:wrap}
+.cta-social{
+  font:400 10px/1 sans-serif;letter-spacing:.2em;
+  color:rgba(255,255,255,.28);text-transform:uppercase;text-decoration:none;
+  transition:color .2s;
+}
+.cta-social:hover{color:#fff}
+
+/* ═══ FOOTER ═══ */
+footer{
+  padding:24px 52px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid rgba(255,255,255,.05);
+  font:400 9px/1 sans-serif;letter-spacing:.18em;
+  color:rgba(255,255,255,.15);text-transform:uppercase;
+}
+
+/* ═══ SCROLL INDICATOR ═══ */
+#scroll-prog{
+  position:fixed;top:0;left:0;z-index:200;
+  height:1px;background:rgba(255,255,255,.3);
+  width:0%;transition:width .1s linear;
+}
+
+/* Responsive */
+@media(max-width:768px){
+  #hero{grid-template-columns:1fr}
+  .hero-photo-wrap{min-height:0}
+  .hero-photo{height:38vw;max-height:280px;position:relative}
+  .hero-text{padding:48px 28px 64px}
+  .hero-name{font-size:44px}
+  .hero-bio{max-width:none}
+  .tl-item{grid-template-columns:1fr;gap:8px}
+  .tl-period{text-align:left}
+  .tl-dot{display:none}
+  #nav{padding:18px 24px}
+  .section{padding:64px 24px}
+  footer{padding:20px 24px}
+}
+@media(max-width:380px){
+  .hero-name{font-size:34px}
+  .stats>div{max-width:120px}
+}
+</style>
+</head>
+<body>
+
+<div id="scroll-prog"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <!-- ★ 修改 href 為你的主頁網址 -->
+  <a id="nav-logo" href="index.html">Portfolio</a>
+  <a id="nav-back" href="index.html">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero">
+
+  <!-- 左側：大頭照 -->
+  <div class="hero-photo-wrap">
+    <div class="hero-photo">
+      <!-- ★ 大頭照 — 填入圖片網址 src="" -->
+      <img src="man.jpg" alt="Profile" onerror="this.style.display='none'">
+      <div class="hero-photo-ph"><span>Photo</span></div>
+    </div>
+  </div>
+
+  <!-- 右側：文字資訊 -->
+  <div class="hero-text">
+    <div class="hero-eyebrow">個人簡介 · Profile</div>
+
+    <!-- ★ 姓名 -->
+    <div class="hero-name">
+      李紹彰<br>
+      <em>LI,SHAU JANG</em>
+    </div>
+
+    <!-- ★ 職稱 -->
+    <div class="hero-role">Designer · Developer · Creator</div>
+
+    <div class="divider"></div>
+
+    <!-- ★ 自我介紹 -->
+    <div class="hero-bio">
+
+我畢業於國立臺北科技大學互動設計系，個性主動積極、富有創意，也是一個容易被新事物激發熱情的人。遇到自己真正喜歡或認同的事情，我會投入大量時間與精力，盡全力將想法落實完成。同時，我具有強烈的主見與執行力，也樂於與團隊溝通、分工合作，享受大家為了共同目標一起完成作品的成就感。
+
+大學期間，我曾參與多次專題製作，並多次擔任小組組長，從前期企劃、工作分配，到製作過程中的溝通與問題解決，都累積了實際的團隊協作與專案管理經驗。在技術方面，我具備多媒體與互動設計的跨領域能力，3D製作方面接觸過 Blender 與 3DCoat，熟悉3D建模、骨架綁定、動畫以及材質與 UV 貼圖等流程；遊戲開發方面則使用 Unity、Unreal Engine 製作過多項遊戲專案，具備從創意發想到實際開發與整合的經驗。此外，我也具備網頁設計與 UI/UX 基礎，曾運用 HTML、CSS 完成紅豆餅電商網站及個人作品集網站。
+
+除了互動設計與遊戲產業之外，我也一直對影音相關產業抱有高度興趣。大二期間，我嘗試創立自己的 YouTube 頻道「見真章」，希望透過實際行動挑戰自己原本不敢嘗試的事情，同時記錄生活中的想法與經歷。從頻道經營的過程中，我開始接觸拍攝、剪輯、內容企劃與影像呈現，也更加確立自己對影音創作與內容企劃的熱情。對我而言，影音不只是單純的拍攝與剪輯，更重要的是如何透過創意、故事與視覺呈現，讓觀眾產生共鳴。
+
+過去也曾參加北區技藝競賽並獲得優等，這段經驗讓我更加確立自己對設計與實作的興趣。我認為自己的優勢在於能夠結合「設計、技術與內容創意」，不只思考作品應該長什麼樣子，也會進一步思考如何將想法真正製作出來。
+
+未來，我希望能進入多媒體、影音、內容企劃或互動創意相關產業，持續累積實務經驗，將自己在互動設計、3D、遊戲、網頁與影音製作上的能力整合運用。我期待加入一個重視創意與團隊合作的環境，持續挑戰自己、學習新的事物，並用實際作品證明自己的想法與能力，逐步在多媒體產業中找到自己的定位並創造價值。
+
+    </div>
+
+    <div class="stats">
+      <div>
+        <div class="stat-num">網頁設計UI/UX</div>
+        <div class="stat-label">理想工作01</div>
+      </div>
+      <div>
+        <div class="stat-num">影音企劃、行銷、剪輯</div>
+        <div class="stat-label">理想工作02</div>
+      </div>
+      <div>
+        <div class="stat-num">3D建模及動畫</div>
+        <div class="stat-label">理想工作03</div>
+      </div>
+    </div>
+
+    <!-- 技能標籤 ★ 可增減 -->
+    <div class="skills">
+      <span class="skill">Unity</span>
+      <span class="skill">Unreal</span>
+      <span class="skill">Html</span>
+      <span class="skill">CSS</span>
+      <span class="skill">Blender</span>
+      <span class="skill">UI / UX</span>
+      <span class="skill">Canvas</span>
+      <span class="skill">premiere</span>
+      <span class="skill">Photoshop</span>
+      <span class="skill">Figma</span>
+      <span class="skill">Stable Diffusion</span>
+      <span class="skill">claude code/gemini/Chatgpt</span>
+    </div>
+
+    <!-- 社群連結 ★ 填入網址 -->
+    <div class="hero-links">
+      <a class="hero-link" href="https://www.instagram.com/johnnylee0416/" target="_blank">Instagram</a>
+      <a class="hero-link" href="https://youtube.com/channel/UCQejTUg8i1ytlrlWLbOiYTg?si=LoOAavqz_eHnvEHG" target="_blank">YouTube</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 工作經歷 ═══ -->
+<section id="experience">
+  <div class="section-inner">
+    <div class="section-label">工作經歷 · Experience</div>
+    <div class="timeline">
+
+      <!-- ★ 條目 1 -->
+      <div class="tl-item">
+        <div class="tl-period">2025<br>— 2026</div>
+        <div class="tl-dot">
+          <div class="tl-dot-circle"></div>
+          <div class="tl-dot-line"></div>
+        </div>
+        <div class="tl-body">
+          <div class="tl-title">程式實習生</div>
+          <div class="tl-company">金展創意有限公司</div>
+          <div class="tl-desc">在公司負責unity遊戲專案的功能程式，期間也參與遊戲的企劃、遊戲角色的建模及動畫。</div>
+          <div class="tl-tags">
+            <span class="tl-tag">Unity</span>
+            <span class="tl-tag">UI Design</span>
+            <span class="tl-tag">3D</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ★ 條目 2 -->
+      <div class="tl-item">
+        <div class="tl-period">2023<br>— 現在</div>
+        <div class="tl-dot">
+          <div class="tl-dot-circle"></div>
+          <div class="tl-dot-line"></div>
+        </div>
+        <div class="tl-body">
+          <div class="tl-title">YT影音頻道</div>
+          <div class="tl-company">見真彰</div>
+          <div class="tl-desc">從企劃到拍攝再到剪輯一手包辦，將自己想呈現的內容透過影片表達。</div>
+          <div class="tl-tags">
+            <span class="tl-tag">Blender</span>
+            <span class="tl-tag">Animation</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ★ 條目 3 -->
+      <div class="tl-item">
+        <div class="tl-period">2019</div>
+        <div class="tl-dot">
+          <div class="tl-dot-circle"></div>
+          <div class="tl-dot-line"></div>
+        </div>
+        <div class="tl-body">
+          <div class="tl-title">參與北區技能競賽</div>
+          <div class="tl-company">網頁設計類</div>
+          <div class="tl-desc">曾經參與北區區域技能競賽，在網頁設計類拿下優等的成績，大學期間也更深入其中，能夠獨立完成網站製作。</div>
+          <div class="tl-tags">
+            <span class="tl-tag">Figma</span>
+            <span class="tl-tag">Photoshop</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 教育背景 ═══ -->
+<section id="education" class="section">
+  <div class="section-inner">
+    <div class="section-label">教育背景 · Education</div>
+    <div class="edu-grid">
+
+      <!-- ★ 學歷 1 -->
+      <div class="edu-card">
+        <div class="edu-degree">互動設計系</div>
+        <div class="edu-school">國立台北科技大學</div>
+        <div class="edu-year">2022 — 2026</div>
+        <div class="edu-desc">unity遊戲程式、影音企劃剪輯、AI生成應用、blender建模軟體</div>
+      </div>
+
+      <!-- ★ 學歷 2 -->
+      <div class="edu-card">
+        <div class="edu-degree">資訊科</div>
+        <div class="edu-school">松山工農</div>
+        <div class="edu-year">2018 — 2022</div>
+        <div class="edu-desc">電子電路技術、電腦硬體裝修技術、網頁設計選手</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<section id="tools">
+  <div class="section-inner" style="padding:88px 0">
+    <div class="section-label" style="padding:0 52px">軟體工具 · Tools</div>
+    <div class="tools-grid">
+ 
+      <!-- ★ 每個 tool-level-bar 的 width 代表熟練度 % -->
+      <div class="tool-card">
+        <div class="tool-icon">U3D</div>
+        <div class="tool-name">Unity</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:90%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">BLD</div>
+        <div class="tool-name">Blender</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:85%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">FGM</div>
+        <div class="tool-name">Figma</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:80%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">PS</div>
+        <div class="tool-name">Photoshop</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:75%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">MJ</div>
+        <div class="tool-name">Midjourney</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:88%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">UE</div>
+        <div class="tool-name">Unreal</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:75%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">HTM</div>
+        <div class="tool-name">Html</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:85%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">CSS</div>
+        <div class="tool-name">CSS</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:85%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">UX</div>
+        <div class="tool-name">UI / UX</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:80%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">CV</div>
+        <div class="tool-name">Canvas</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:70%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">PR</div>
+        <div class="tool-name">premiere</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:75%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">SD</div>
+        <div class="tool-name">Stable Diffusion</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:80%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">LLM</div>
+        <div class="tool-name">claude code/gemini/Chatgpt</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:85%"></div></div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon">HW</div>
+        <div class="tool-name">硬體線路、電腦硬體裝修</div>
+        <div class="tool-level"><div class="tool-level-bar" style="width:75%"></div></div>
+      </div>
+ 
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTACT CTA ═══ -->
+<section id="contact-cta">
+  <div class="cta-label">聯繫我 · Get in touch</div>
+  <div class="cta-heading">有合作機會？<br>歡迎聯繫。</div>
+  <div class="cta-sub">歡迎各類合作、委託創作，或只是想打聲招呼。</div>
+  <!-- ★ 填入 Email -->
+  <a class="cta-email" href="mailto:your@email.com">johnny930416@email.com</a>
+  <div class="cta-socials">
+    <!-- ★ 填入社群連結 -->
+    <a class="cta-social" href="https://www.instagram.com/johnnylee0416/" target="_blank">Instagram</a>
+    <a class="cta-social" href="https://youtube.com/channel/UCQejTUg8i1ytlrlWLbOiYTg?si=LoOAavqz_eHnvEHG" target="_blank">YouTube</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <!-- ★ 修改版權姓名與年份 -->
+  <span>© 2024 Your Name</span>
+  <span>Taiwan</span>
+</footer>
+
+<script>
+/* 滾動進度條 */
+const prog = document.getElementById('scroll-prog');
+window.addEventListener('scroll', ()=>{
+  const p = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  prog.style.width = Math.min(100, p*100) + '%';
+},{passive:true});
+
+/* Nav 背景隨滾動淡入 */
+const nav = document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  const alpha = Math.min(.95, window.scrollY/120);
+  nav.style.background = `rgba(10,10,10,${alpha})`;
+},{passive:true});
+
+/* 工具列進度條動畫：進入視窗才展開 */
+const bars = document.querySelectorAll('.tool-level-bar');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.transition='width .9s cubic-bezier(.16,1,.3,1)';
+      /* width 已在 HTML 設好，只需重新觸發 */
+      const w = e.target.style.width;
+      e.target.style.width='0%';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        e.target.style.width=w;
+      }));
+      observer.unobserve(e.target);
+    }
+  });
+},{threshold:.2});
+bars.forEach(b=>{ b.dataset.w=b.style.width; b.style.width='0%'; observer.observe(b); });
+</script>
+</body>
+</html>
