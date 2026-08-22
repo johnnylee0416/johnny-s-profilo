@@ -136,6 +136,12 @@ body{background:#f5f4f1;color:#111;font-family:-apple-system,BlinkMacSystemFont,
 .work-modal-video video,.work-modal-video iframe{
   width:100%;height:100%;display:block;border:0;
 }
+.work-modal-video.multi{aspect-ratio:auto;overflow:visible;background:transparent}
+.work-modal-video-grid{display:grid;gap:8px}
+.work-modal-video-grid video{width:100%;aspect-ratio:16/9;background:#111;border-radius:4px;display:block;object-fit:contain}
+@media(max-width:600px){
+  .work-modal-video-grid{grid-template-columns:1fr!important}
+}
 .work-modal-gallery{
   display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
   margin-bottom:24px;
@@ -310,13 +316,13 @@ footer{padding:22px 52px;border-top:1px solid rgba(0,0,0,.08);display:flex;align
       <div class="bento-title">個人作品集網頁</div>
     </div>
 
-    <!-- 03 · 2D 手繪影片（已填入實際內容） -->
+    <!-- 03 · 2D 手繪影片：影片留空待補（原檔名 ze.mp4），請填入YouTube網址 -->
     <div class="bento-item"
          data-type="video"
          data-cat="Brand Identity"
          data-title="ZE"
          data-desc="這是一個ARG網頁遊戲的前導劇情影片，呈現出LGBT及跨性別者在職場、同儕等各種環境中會經歷的歧視或被以異樣眼光看待的情況，以2D逐格動畫為媒材，搭配後至音效及畫風凸顯手繪的質感"
-         data-video="ze.mp4"
+         data-video="https://www.youtube.com/embed/XGS2EXuWJEY"
          onclick="openWorkModal(this)">
       <div class="bento-img" style="background-image:url('ze (2).png')"></div>
       <span class="bento-tag">Brand Identity</span>
@@ -325,13 +331,13 @@ footer{padding:22px 52px;border-top:1px solid rgba(0,0,0,.08);display:flex;align
       <div class="bento-title">ZE</div>
     </div>
 
-    <!-- 04 · AI 相關影音（已填入實際內容） -->
+    <!-- 04 · AI 相關影音：影片留空待補（原檔名 shine on you(stable diffusion web ui making).mp4），請填入YouTube網址 -->
     <div class="bento-item"
          data-type="video"
          data-cat="Illustration"
          data-title="shine on you"
          data-desc="shine on you"
-         data-video="shine on you(stable diffusion web ui making).mp4"
+         data-videos="https://www.youtube.com/embed/qJ3KOKWppEM,https://www.youtube.com/embed/HJt3dhumFSY"
          onclick="openWorkModal(this)">
       <div class="bento-img" style="background-image:url('shine.png')"></div>
       <span class="bento-tag">Illustration</span>
@@ -342,13 +348,13 @@ footer{padding:22px 52px;border-top:1px solid rgba(0,0,0,.08);display:flex;align
 
 
 
-    <!-- 06 · UX 案例（已填入實際內容，保留） -->
+    <!-- 06 · UX 案例：影片留空待補（原檔名 UX.mp4），請填入YouTube網址 -->
     <div class="bento-item"
          data-type="video"
          data-cat="UX"
          data-title="校史館-使用者旅程地圖/實際UX影片Demo"
          data-desc="此影片針對北科大校史館做UX使用者經驗的研究，並依據{校友阿公帶孫子來參觀}這主題模擬實際情況，依照參展遇到的問題點，思考如何解決。"
-         data-video="UX.mp4"
+         data-video="https://www.youtube.com/embed/quPXu7HLvlo"
          onclick="openWorkModal(this)">
       <div class="bento-img" style="background-image:url('UX.png')"></div>
       <span class="bento-tag">UI · App Design</span>
@@ -357,14 +363,14 @@ footer{padding:22px 52px;border-top:1px solid rgba(0,0,0,.08);display:flex;align
       <div class="bento-title">校史館-使用者旅程地圖/實際UX影片Demo</div>
     </div>
 
-    <!-- 簡報 03 -->
+    <!-- 簡報 03：影片留空待補（原檔名 BBQ_720p.mp4），請填入YouTube網址 -->
     <div class="bento-item"
          data-type="slide"
          data-cat="UX · Prototype"
          data-title=""
          data-desc=""
          data-link="多感官簡報.pdf"
-         data-video="BBQ_720p.mp4"
+         data-video="https://www.youtube.com/embed/xQyfSNDbu7w"
          onclick="openWorkModal(this)">
       <div class="bento-img" style="background-image:url('UX22.png')"></div>
       <span class="bento-tag">UX · Prototype</span>
@@ -572,9 +578,36 @@ function openWorkModal(el){
   audioList.style.display = 'none';
   link.style.display = 'none';
 
-  /* 影片播放（video 型，或任何有填 data-video 的項目） */
+  /* 影片播放：data-videos 可放多支（逗號分隔）並排顯示；data-video 維持單支影片／嵌入網址的舊用法 */
+  videoWrap.classList.remove('multi');
+  const videosRaw = el.dataset.videos || '';
+  const videoList = videosRaw.split(',').map(s => s.trim()).filter(Boolean);
   const videoSrc = el.dataset.video || '';
-  if(videoSrc){
+
+  if(videoList.length){
+    videoWrap.classList.add('multi');
+    const grid = document.createElement('div');
+    grid.className = 'work-modal-video-grid';
+    grid.style.gridTemplateColumns = `repeat(${videoList.length}, 1fr)`;
+    videoList.forEach(src=>{
+      if(/\.(mp4|webm|ogg)(\?.*)?$/i.test(src)){
+        const v = document.createElement('video');
+        v.src = src;
+        v.controls = true;
+        v.playsInline = true;
+        grid.appendChild(v);
+      } else {
+        const iframe = document.createElement('iframe');
+        iframe.src = src;
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+        iframe.allowFullscreen = true;
+        iframe.style.cssText = 'width:100%;grid-column:1 / -1;min-height:280px;aspect-ratio:16/9;border:0;border-radius:4px;background:#111';
+        grid.appendChild(iframe);
+      }
+    });
+    videoWrap.appendChild(grid);
+    videoWrap.style.display = 'block';
+  } else if(videoSrc){
     if(/\.(mp4|webm|ogg)(\?.*)?$/i.test(videoSrc)){
       const video = document.createElement('video');
       video.src = videoSrc;

@@ -451,10 +451,10 @@ footer{padding:22px 52px;border-top:1px solid rgba(255,255,255,.05);display:flex
                         點下去會並排顯示每一支影片，每支各自獨立 loop 播放，彼此不接續、不互相影響
          圖片作品：加上 data-images="圖1,圖2,圖3..."（逗號分隔），點下去顯示縮圖牆，可以看更多張、點圖放大 -->
 
-    <!-- ★ 01 · 3D 影片作品（精選，寬版置頂） -->
+    <!-- ★ 01 · 3D 影片作品（精選，寬版置頂）：影片留空待補（原檔名 夏霞MV.mp4, 2024 互動之夜 ｜ 堅挺嵐耙_1080p.mp4），請填入YouTube網址 -->
     <div class="gallery-item"
          style="grid-column:span 2;aspect-ratio:21/9"
-         data-videos="夏霞MV.mp4,2024 互動之夜 ｜ 堅挺嵐耙_1080p.mp4"
+         data-videos="https://www.youtube.com/embed/zOWz3V2UMW0,https://www.youtube.com/embed/87J6zO9Nzfo"
          data-cat="3D Animation"
          data-title="夏霞MV3D動畫(左)/互動之夜實際展演(右) "
          data-desc="這次配合系學會的互動之夜活動，利用blender製作夏霞的MV動畫，MV採用2D手繪感色彩鮮明的風格，並配合節奏及歌詞的變化，呈現出不同的意境和場景。"
@@ -874,7 +874,9 @@ window.addEventListener('scroll',()=>{
 },{passive:true});
 
 /* 多支獨立循環播放器：每支影片各自單獨 loop，同時並排播放，互不影響、互不接續。
-   欄數依 videoList.length 動態設定，2支就2欄、3支就3欄，以此類推 */
+   欄數依 videoList.length 動態設定，2支就2欄、3支就3欄，以此類推。
+   非 .mp4/.webm/.ogg 的網址（例如 YouTube/Drive 嵌入連結）改用 iframe 顯示，
+   iframe 沒有 JS 播放控制權，因此無法強制自動循環，但仍會並排顯示、可各自操作 */
 let wmLoopVideos = []; // 記錄目前開啟的所有循環影片，供 closeWorkModal 清除
 
 function renderLoopingVideos(videoWrap, videoList){
@@ -883,16 +885,26 @@ function renderLoopingVideos(videoWrap, videoList){
   grid.className = 'wm-video-grid';
   grid.style.gridTemplateColumns = `repeat(${videoList.length}, 1fr)`;
 
-  const videos = videoList.map(src => {
-    const v = document.createElement('video');
-    v.src = src;
-    v.loop = true;        // 各自獨立循環
-    v.muted = true;       // 靜音以確保瀏覽器允許自動播放
-    v.autoplay = true;
-    v.playsInline = true;
-    v.controls = true;    // 使用者仍可自行取消靜音、暫停單一片段
-    grid.appendChild(v);
-    return v;
+  const videos = [];
+  videoList.forEach(src => {
+    if(/\.(mp4|webm|ogg)(\?.*)?$/i.test(src)){
+      const v = document.createElement('video');
+      v.src = src;
+      v.loop = true;        // 各自獨立循環
+      v.muted = true;       // 靜音以確保瀏覽器允許自動播放
+      v.autoplay = true;
+      v.playsInline = true;
+      v.controls = true;    // 使用者仍可自行取消靜音、暫停單一片段
+      grid.appendChild(v);
+      videos.push(v);
+    } else {
+      const iframe = document.createElement('iframe');
+      iframe.src = src;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.style.cssText = 'width:100%;aspect-ratio:16/9;border:0;border-radius:4px;background:#000';
+      grid.appendChild(iframe);
+    }
   });
 
   videoWrap.appendChild(grid);
