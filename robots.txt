@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://johnnylee0416.github.io/johnny-s-profilo/sitemap.xml
